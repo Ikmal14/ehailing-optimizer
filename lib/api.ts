@@ -77,7 +77,7 @@ export interface DriverParams {
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`, { next: { revalidate: 0 } });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  if (!res.ok || res.status === 202) throw new Error(`${res.status} ${res.statusText}`);
   return res.json();
 }
 

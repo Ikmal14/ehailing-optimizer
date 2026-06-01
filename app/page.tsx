@@ -14,7 +14,13 @@ export default function Dashboard() {
   const { data, error, isLoading, mutate } = useSWR<Recommendations>(
     'recommendations',
     api.recommendations,
-    { refreshInterval: 60_000 },
+    {
+      refreshInterval: 60_000,
+      onError: () => {
+        // Auto-trigger harvest if Redis cache is empty
+        api.triggerHarvest().then(() => setTimeout(() => mutate(), 5000));
+      },
+    },
   );
 
   if (isLoading) return <LoadingSkeleton />;

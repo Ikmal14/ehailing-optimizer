@@ -85,15 +85,43 @@ async function fetchWeather(lat: number, lng: number) {
     });
     const main = data.weather[0].main;
     return {
-      main, description: data.weather[0].description,
-      tempC: data.main.temp, humidity: data.main.humidity,
+      main,
+      description:    data.weather[0].description,
+      tempC:          data.main.temp,
+      feelsLikeC:     data.main.feels_like,
+      humidity:       data.main.humidity,
+      windKmh:        (data.wind?.speed ?? 0) * 3.6, // m/s → km/h
+      rainMm:         data.rain?.['1h'] ?? 0,         // mm in last hour
       weatherPenalty: WEATHER_PENALTY[main] ?? 1.0,
     };
   } catch {
-    return { main: 'Unknown', description: 'N/A', tempC: 28, humidity: 80, weatherPenalty: 1.0 };
+    return { main: 'Unknown', description: 'N/A', tempC: 28, feelsLikeC: 30, humidity: 80, windKmh: 0, rainMm: 0, weatherPenalty: 1.0 };
   }
 }
 
+// Official Malaysian weekly retail fuel prices from data.gov.my (free, no key).
+// RON95 is government-capped (long stable at RM2.05); RON97 & diesel float weekly.
+async function fetchFuelPrice() {
+  try {
+    const { data } = await axios.get('https://api.data.gov.my/data-catalogue', {
+      params: { id: 'fuelprice', limit: 1, sort: '-date' },
+      timeout: 8000,
+    });
+    const row = Array.isArray(data) ? data[0] : data?.data?.[0];
+    if (!row) throw new Error('no fuel data');
+    return {
+      ron95:  Number(row.ron95),
+      ron97:  Number(row.ron97),
+      diesel: Number(row.diesel),
+      budi95: 1.99, // BUDI95 subsidised RON95 for eligible Malaysians
+      date:   row.date as string,
+      source: 'data.gov.my',
+    };
+  } catch {
+    // Fallback prices (post-BUDI95: market RON95 ~RM2.60, subsidised RM1.99).
+    return { ron95: 2.60, ron97: 3.47, diesel: 2.88, budi95: 1.99, date: null, source: 'fallback' };
+  }
+}
 
 export async function runHarvest() {
   const zonesRes  = await pool.query('SELECT id, name, base_speed_kmh, lat, lng FROM zones ORDER BY id');
@@ -121,7 +149,11 @@ export async function runHarvest() {
   const activeBlocks   = getCurrentTimeBlock(blocks, dayType);
   const activeCategories = [...new Set(activeBlocks.flatMap((b: any) => b.target_categories))] as string[];
 
-  const weather = await fetchWeather(3.1390, 101.6869);
+  // Weather at the driver's actual base; fuel price nationwide.
+  const [weather, fuelPrice] = await Promise.all([
+    fetchWeather(parseFloat(driver.base_lat), parseFloat(driver.base_lng)),
+    fetchFuelPrice(),
+  ]);
 
   const zoneMetrics: any[] = [];
 
@@ -191,7 +223,7 @@ export async function runHarvest() {
       fuelCostMyr: Math.round(fuelCost * 100) / 100,
       bearingDeg: Math.round(bearing),
       bearingLabel: bearingLabel(bearing),
-      weather: { main: weather.main, description: weather.description, penalty: weather.weatherPenalty },
+      weather: { main: weather.main, description: weather.description, penalty: weather.weatherPenalty, tempC: Math.round(weather.tempC), feelsLikeC: Math.round(weather.feelsLikeC), humidity: weather.humidity, windKmh: Math.round(weather.windKmh), rainMm: Math.round(weather.rainMm * 10) / 10 },
       matchedPoiCount: matchedPois.length,
       matchedPois: matchedPois.map((p: any) => ({ name: p.name, category: p.category })),
       isBlacklisted,
@@ -218,7 +250,13 @@ export async function runHarvest() {
     generatedAt: new Date().toISOString(),
     dayType, activeBlocks: activeBlocks.map((b: any) => ({ label: b.label, start: b.start_time, end: b.end_time })),
     activeCategories,
-    weather: { main: weather.main, description: weather.description, penalty: weather.weatherPenalty },
+    weather: {
+      main: weather.main, description: weather.description, penalty: weather.weatherPenalty,
+      tempC: Math.round(weather.tempC), feelsLikeC: Math.round(weather.feelsLikeC),
+      humidity: weather.humidity, windKmh: Math.round(weather.windKmh),
+      rainMm: Math.round(weather.rainMm * 10) / 10,
+    },
+    fuelPrice,
     bestStartTime: recommendBestStartTime({
       now: new Date(),
       dayType,

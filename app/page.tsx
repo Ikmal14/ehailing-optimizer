@@ -7,6 +7,8 @@ import { TargetZoneCard } from '@/components/TargetZoneCard';
 import { BlacklistBanner } from '@/components/BlacklistBanner';
 import { TopZonesTable } from '@/components/TopZonesTable';
 import { WeatherBadge } from '@/components/WeatherBadge';
+import { FuelPriceCard } from '@/components/FuelPriceCard';
+import { LocationSync } from '@/components/LocationSync';
 import { RefreshButton } from '@/components/RefreshButton';
 import { relativeTime } from '@/lib/utils';
 
@@ -53,6 +55,9 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Auto location sync */}
+      <LocationSync onSynced={() => mutate()} />
+
       {/* Active block pills */}
       <div className="flex gap-1.5 flex-wrap">
         {data.activeBlocks.map((b) => (
@@ -77,14 +82,10 @@ export default function Dashboard() {
       }
 
       {/* Weather detail */}
-      <div className="rounded-xl border border-border bg-panel p-4">
-        <p className="text-xs text-muted uppercase tracking-widest mb-2">Conditions</p>
-        <WeatherBadge
-          main={data.weather.main}
-          description={data.weather.description}
-          penalty={data.weather.penalty}
-        />
-      </div>
+      <WeatherBadge {...data.weather} />
+
+      {/* Fuel price */}
+      {data.fuelPrice && <FuelPriceCard fuel={data.fuelPrice} />}
 
       {/* Blacklist */}
       <BlacklistBanner zones={data.blacklistedZones} />
@@ -93,7 +94,7 @@ export default function Dashboard() {
       <TopZonesTable zones={data.topZones} />
 
       <p className="text-center text-[10px] text-muted pb-2">
-        Updates every 10 min · TomTom + OpenWeather
+        Auto-updates every 10 min · Traffic: TomTom · Weather: OpenWeather · Fuel: data.gov.my
       </p>
     </div>
   );

@@ -5,6 +5,11 @@ export interface WeatherInfo {
   main: string;
   description: string;
   penalty: number;
+  tempC?: number;
+  feelsLikeC?: number;
+  humidity?: number;
+  windKmh?: number;
+  rainMm?: number;
 }
 
 export interface TargetZone {
@@ -41,12 +46,22 @@ export interface BestStartTime {
   targetCategories?: string[];
 }
 
+export interface FuelPrice {
+  ron95: number;
+  ron97: number;
+  diesel: number;
+  budi95: number;
+  date: string | null;
+  source: string;
+}
+
 export interface Recommendations {
   generatedAt: string;
   dayType: 'weekday' | 'weekend';
   activeBlocks: { label: string; start: string; end: string }[];
   activeCategories: string[];
   weather: WeatherInfo;
+  fuelPrice?: FuelPrice;
   bestStartTime: BestStartTime;
   targetZone: TargetZone | null;
   blacklistedZones: string[];

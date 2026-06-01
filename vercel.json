@@ -1,0 +1,13 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/.next",
+  "installCommand": "cd frontend && npm install",
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/harvest/run",
+      "schedule": "*/10 * * * *"
+    }
+  ],
+  "ignoreCommand": "git diff HEAD^ HEAD --name-only | grep -q '^frontend/'"
+}

@@ -2,6 +2,7 @@ import axios from 'axios';
 import pool from './db';
 import redis from './redis';
 import { calculateZoneScore } from './score';
+import { recommendBestStartTime } from './startTime';
 
 const TOMTOM_KEY      = process.env.TOMTOM_API_KEY;
 const OPENWEATHER_KEY = process.env.OPENWEATHER_API_KEY;
@@ -93,34 +94,6 @@ async function fetchWeather(lat: number, lng: number) {
   }
 }
 
-function predictNextSurgeWindow(blocks: any[], dayType: string) {
-  const now  = new Date();
-  const hhmm = now.getHours() * 60 + now.getMinutes();
-  const highValue = new Set(['transit', 'office', 'hospital', 'university']);
-  const upcoming = blocks
-    .filter(b => b.day_type === dayType)
-    .map(b => {
-      const [sh, sm] = b.start_time.split(':').map(Number);
-      const startMin = sh * 60 + sm;
-      return { ...b, startMin, minutesUntil: startMin - hhmm };
-    })
-    .filter(b => b.minutesUntil > 0 && b.minutesUntil <= 120)
-    .sort((a, b) => a.minutesUntil - b.minutesUntil);
-
-  if (!upcoming.length) return { message: 'You are in an active surge window. Stay online.', minutesUntil: 0 };
-
-  const next = upcoming[0];
-  const goOnlineAt = new Date(now.getTime() + (next.minutesUntil - 15) * 60000);
-  const fmt = (d: Date) => d.toTimeString().slice(0, 5);
-  return {
-    message:          `Go ONLINE at ${fmt(goOnlineAt)} to catch the "${next.label}" surge starting at ${next.start_time}`,
-    goOnlineAt:       fmt(goOnlineAt),
-    surgeStartsAt:    next.start_time,
-    label:            next.label,
-    minutesUntil:     next.minutesUntil,
-    targetCategories: next.target_categories,
-  };
-}
 
 export async function runHarvest() {
   const zonesRes  = await pool.query('SELECT id, name, base_speed_kmh, lat, lng FROM zones ORDER BY id');
@@ -246,7 +219,13 @@ export async function runHarvest() {
     dayType, activeBlocks: activeBlocks.map((b: any) => ({ label: b.label, start: b.start_time, end: b.end_time })),
     activeCategories,
     weather: { main: weather.main, description: weather.description, penalty: weather.weatherPenalty },
-    bestStartTime: predictNextSurgeWindow(blocks, dayType),
+    bestStartTime: recommendBestStartTime({
+      now: new Date(),
+      dayType,
+      blocks,
+      liveBestNetPerHour: best?.netProfitPerHour ?? 0,
+      weatherMain: weather.main,
+    }),
     targetZone: best ? {
       name: best.zoneName, efficiencyScore: best.efficiencyScore,
       netProfitPerHour: best.netProfitPerHour,

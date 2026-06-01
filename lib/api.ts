@@ -29,11 +29,15 @@ export interface TopZone {
 }
 
 export interface BestStartTime {
+  status: 'go_now' | 'wait' | 'low_demand';
+  headline: string;
   message: string;
+  reason: string;
+  demandNow: number;            // 0–100
+  minutesUntil: number;
   goOnlineAt?: string;
-  surgeStartsAt?: string;
-  label?: string;
-  minutesUntil?: number;
+  windowLabel?: string;
+  windowStartsAt?: string;
   targetCategories?: string[];
 }
 

@@ -217,19 +217,15 @@ async function runHarvest() {
 
   // 1. Load zones with centroids
   const zonesRes = await db.query(`
-    SELECT
-      z.id, z.name, z.base_speed_kmh,
-      ST_X(ST_Centroid(z.geom)) AS lng,
-      ST_Y(ST_Centroid(z.geom)) AS lat
-    FROM zones z
-    ORDER BY z.id
+    SELECT id, name, base_speed_kmh, lat, lng
+    FROM zones
+    ORDER BY id
   `);
   const zones = zonesRes.rows;
 
   // 2. Load all POIs grouped by zone
   const poisRes = await db.query(`
-    SELECT id, zone_id, name, category,
-           ST_X(geom) AS lng, ST_Y(geom) AS lat
+    SELECT id, zone_id, name, category, lat, lng
     FROM pois
   `);
   const poisByZone = {};
@@ -242,7 +238,13 @@ async function runHarvest() {
     db.query('SELECT * FROM strategy_blocks'),
     db.query('SELECT * FROM driver_params WHERE id = 1'),
   ]);
-  const blocks = blocksRes.rows;
+  // pg returns Postgres arrays as strings e.g. "{mall,transit}" — parse to JS arrays
+  const blocks = blocksRes.rows.map(b => ({
+    ...b,
+    target_categories: Array.isArray(b.target_categories)
+      ? b.target_categories
+      : b.target_categories.replace(/^\{|\}$/g, '').split(','),
+  }));
   const driver = driverRes.rows[0];
 
   const dayType        = getActiveDayType();

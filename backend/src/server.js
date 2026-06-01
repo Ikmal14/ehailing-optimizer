@@ -94,8 +94,7 @@ app.patch('/api/driver-params', async (req, res) => {
 app.get('/api/pois', async (req, res) => {
   const { category, zone } = req.query;
   let query = `
-    SELECT p.id, p.name, p.category, z.name AS zone_name,
-           ST_X(p.geom) AS lng, ST_Y(p.geom) AS lat
+    SELECT p.id, p.name, p.category, z.name AS zone_name, p.lat, p.lng
     FROM pois p JOIN zones z ON p.zone_id = z.id
     WHERE 1=1
   `;
@@ -127,11 +126,15 @@ cron.schedule('*/10 * * * *', () => {
 // ────────────────────────────────────────────────────────────
 
 async function boot() {
-  await redis.connect();
+  // Redis: attempt connection but don't crash — harvester will retry on each cron tick
+  try {
+    await redis.connect();
+  } catch (err) {
+    console.warn('[Boot] Redis unavailable — will retry on next harvest:', err.message);
+  }
 
   app.listen(PORT, () => {
     console.log(`[Server] Listening on port ${PORT}`);
-    // Run immediately on boot so dashboard has data
     runHarvest().catch(err => console.error('[Boot Harvest] Error:', err.message));
   });
 }

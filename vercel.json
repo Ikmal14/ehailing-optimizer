@@ -8,6 +8,5 @@
       "path": "/api/harvest/run",
       "schedule": "*/10 * * * *"
     }
-  ],
-  "ignoreCommand": "git diff HEAD^ HEAD --name-only | grep -q '^frontend/'"
+  ]
 }

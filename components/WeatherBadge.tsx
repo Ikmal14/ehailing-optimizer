@@ -15,7 +15,7 @@ interface Props {
 }
 
 export function WeatherBadge({
-  main, description, penalty, tempC, feelsLikeC, humidity, windKmh, rainMm, compact,
+  main, description, penalty, tempC, feelsLikeC, windKmh, rainMm, compact,
 }: Props) {
   const wet  = main === 'Rain' || main === 'Thunderstorm' || (rainMm ?? 0) > 0;
   const good = !wet;
@@ -57,7 +57,6 @@ export function WeatherBadge({
           <Chip icon="🌧" label={`${rainMm} mm/h`} tone="warn" />
         )}
         {windKmh != null && <Chip icon="💨" label={`${windKmh} km/h`} />}
-        {humidity != null && <Chip icon="💧" label={`${humidity}%`} />}
       </div>
 
       {/* Driver-relevant insight */}

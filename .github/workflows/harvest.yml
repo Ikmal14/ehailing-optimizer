@@ -1,0 +1,22 @@
+name: Harvest live data
+
+# Pings the Vercel harvest endpoint so traffic, weather, and fuel data
+# refresh automatically — Vercel Hobby cron only allows daily, so we use
+# GitHub Actions (free, every 10 minutes).
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}   # allow manual run from the Actions tab
+
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger harvest
+        run: |
+          echo "Triggering harvest at $(date -u)"
+          code=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            https://ehailing-optimizer.vercel.app/api/harvest/run)
+          echo "HTTP $code"
+          # Treat 2xx as success; fail the run otherwise so it's visible in Actions.
+          [ "$code" -ge 200 ] && [ "$code" -lt 300 ]

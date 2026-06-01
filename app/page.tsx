@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 import useSWR from 'swr';
 import { api, type Recommendations } from '@/lib/api';
 import { StartTimeCard } from '@/components/StartTimeCard';

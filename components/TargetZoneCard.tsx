@@ -22,7 +22,10 @@ export function TargetZoneCard({ zone }: Props) {
           <p className="text-sm text-success font-mono mt-0.5">
             {zone.direction}
           </p>
-          <div className="mt-2 flex gap-4 text-xs text-muted">
+          <p className="mt-1 text-lg font-black text-success font-mono">
+            ~RM {zone.netProfitPerHour}<span className="text-xs text-muted font-normal">/hr net</span>
+          </p>
+          <div className="mt-1 flex gap-4 text-xs text-muted">
             <span>{zone.distanceKm} km away</span>
             <span>RM {zone.fuelCostMyr} fuel</span>
             <span>{zone.speedKmh} km/h</span>

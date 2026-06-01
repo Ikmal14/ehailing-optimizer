@@ -1,6 +1,7 @@
 import axios from 'axios';
 import pool from './db';
 import redis from './redis';
+import { calculateZoneScore } from './score';
 
 const TOMTOM_KEY      = process.env.TOMTOM_API_KEY;
 const OPENWEATHER_KEY = process.env.OPENWEATHER_API_KEY;
@@ -15,8 +16,6 @@ const CATEGORY_SURGE: Record<string, number> = {
   transit: 1.40, office: 1.30, mall: 1.20, hospital: 1.15,
   university: 1.25, residential: 1.10, tourist: 1.20, park: 1.05,
 };
-
-const BLACKLIST_THRESHOLD = 0.40;
 
 function getActiveDayType(): 'weekday' | 'weekend' {
   const d = new Date().getDay();
@@ -94,30 +93,6 @@ async function fetchWeather(lat: number, lng: number) {
   }
 }
 
-function calcEfficiencyScore({
-  zonePois, activeCategories, distanceKm, baseSpeedKmh,
-  congestionRatio, freeFlowSpeed, weatherPenalty,
-}: any) {
-  const effectiveSpeed = freeFlowSpeed * congestionRatio;
-  if (effectiveSpeed < 1) return 0;
-  const driveTimeHr    = distanceKm / effectiveSpeed;
-  const freeFlowTimeHr = distanceKm / baseSpeedKmh;
-  const trafficDelayHr = Math.max(0, driveTimeHr - freeFlowTimeHr);
-  let totalSurge = 0, matchedPois = 0;
-  for (const poi of zonePois) {
-    if (activeCategories.includes(poi.category)) {
-      totalSurge += CATEGORY_SURGE[poi.category] ?? 1.0;
-      matchedPois++;
-    }
-  }
-  if (matchedPois === 0) return 0;
-  const avgSurge      = totalSurge / matchedPois;
-  const expectedFares = matchedPois * 1.5;
-  const denominator   = driveTimeHr + trafficDelayHr;
-  if (denominator <= 0) return 0;
-  return Math.round((expectedFares * avgSurge * weatherPenalty) / denominator * 100) / 100;
-}
-
 function predictNextSurgeWindow(blocks: any[], dayType: string) {
   const now  = new Date();
   const hhmm = now.getHours() * 60 + now.getMinutes();
@@ -183,25 +158,59 @@ export async function runHarvest() {
       parseFloat(driver.base_lat), parseFloat(driver.base_lng),
       parseFloat(zone.lat), parseFloat(zone.lng)
     );
-    const pois  = poisByZone[zone.id] || [];
-    const score = calcEfficiencyScore({
-      zonePois: pois, activeCategories, distanceKm: distance,
-      baseSpeedKmh: parseFloat(zone.base_speed_kmh),
-      congestionRatio: traffic.congestionRatio,
-      freeFlowSpeed: traffic.freeFlowSpeed,
-      weatherPenalty: weather.weatherPenalty,
-    });
+    const pois        = poisByZone[zone.id] || [];
+    const matchedPois = pois.filter((p: any) => activeCategories.includes(p.category));
+
+    // Demand index = sum of matched-POI category weights (more/higher-value POIs → more rides → less wait).
+    const demandIndex = matchedPois.reduce(
+      (sum: number, p: any) => sum + (CATEGORY_SURGE[p.category] ?? 1.0),
+      0,
+    );
+
+    // Active category for this zone = the highest-weight matched category present here.
+    const activeCategory =
+      matchedPois
+        .map((p: any) => p.category)
+        .sort((a: string, b: string) => (CATEGORY_SURGE[b] ?? 0) - (CATEGORY_SURGE[a] ?? 0))[0]
+      ?? activeCategories[0]
+      ?? 'default';
+
+    const result = calculateZoneScore(
+      { name: zone.name },
+      {
+        activeCategory,
+        currentSpeed:    traffic.currentSpeed,
+        freeFlowSpeed:   traffic.freeFlowSpeed,
+        congestionRatio: traffic.congestionRatio,
+        weatherStatus:   weather.main,
+        demandIndex,
+      },
+    );
+
     const fuelCost = (distance / parseFloat(driver.fuel_efficiency)) * parseFloat(driver.fuel_price_myr);
     const bearing  = bearingTo(
       parseFloat(driver.base_lat), parseFloat(driver.base_lng),
       parseFloat(zone.lat), parseFloat(zone.lng)
     );
-    const isBlacklisted = score < BLACKLIST_THRESHOLD || traffic.congestionRatio < 0.35;
-    const matchedPois   = pois.filter((p: any) => activeCategories.includes(p.category));
+
+    // Blacklist: trap zone (below profit floor), no matching demand, or gridlocked.
+    const isBlacklisted = result.isBlacklisted || matchedPois.length === 0 || traffic.congestionRatio < 0.35;
+
     return {
       zoneId: zone.id, zoneName: zone.name,
       lat: parseFloat(zone.lat), lng: parseFloat(zone.lng),
-      efficiencyScore: score,
+      efficiencyScore:   result.finalScore,
+      netProfitPerHour:  result.netProfitPerHour,
+      grossFareMyr:      result.grossFare,
+      netPerTripMyr:     result.netPerTrip,
+      tripTimeMins:      result.tripTimeMins,
+      waitTimeMins:      result.waitTimeMins,
+      deadheadTimeMins:  result.deadheadTimeMins,
+      cycleTimeMins:     result.cycleTimeMins,
+      surgeMultiplier:   result.surgeMultiplier,
+      profile:           result.profile,
+      activeCategory,
+      demandIndex:       Math.round(demandIndex * 100) / 100,
       congestionRatio: Math.round(traffic.congestionRatio * 100) / 100,
       currentSpeedKmh: traffic.currentSpeed,
       freeFlowSpeedKmh: traffic.freeFlowSpeed,
@@ -214,7 +223,11 @@ export async function runHarvest() {
       matchedPois: matchedPois.map((p: any) => ({ name: p.name, category: p.category })),
       isBlacklisted,
       blacklistReason: isBlacklisted
-        ? (traffic.congestionRatio < 0.35 ? 'Gridlocked — congestion >65%' : `Score ${score} below threshold`)
+        ? (traffic.congestionRatio < 0.35
+            ? 'Gridlocked — congestion >65%'
+            : matchedPois.length === 0
+              ? 'No active demand for current time block'
+              : `Trap zone — only RM${result.netProfitPerHour}/hr (below RM15 floor)`)
         : null,
     };
   }
@@ -236,6 +249,7 @@ export async function runHarvest() {
     bestStartTime: predictNextSurgeWindow(blocks, dayType),
     targetZone: best ? {
       name: best.zoneName, efficiencyScore: best.efficiencyScore,
+      netProfitPerHour: best.netProfitPerHour,
       direction: `${best.bearingLabel} (${best.bearingDeg}°)`,
       distanceKm: best.distanceKm, fuelCostMyr: best.fuelCostMyr,
       speedKmh: best.currentSpeedKmh, matchedPois: best.matchedPois,
@@ -243,6 +257,7 @@ export async function runHarvest() {
     blacklistedZones: blacklisted,
     topZones: ranked.slice(0, 5).map(z => ({
       name: z.zoneName, score: z.efficiencyScore,
+      netProfitPerHour: z.netProfitPerHour,
       direction: `${z.bearingLabel} (${z.bearingDeg}°)`,
       distanceKm: z.distanceKm, congestion: z.congestionRatio, blacklisted: z.isBlacklisted,
     })),

@@ -7,8 +7,8 @@ export function ScoreRing({ score, size = 80 }: Props) {
   const r  = 32;
   const cx = size / 2;
   const circumference = 2 * Math.PI * r;
-  const capped  = Math.min(score, 15);
-  const fill    = (capped / 15) * circumference;
+  const capped  = Math.min(score, 100);
+  const fill    = (capped / 100) * circumference;
   const color   = scoreColor(score).replace('text-', '');
 
   const stroke: Record<string, string> = {
@@ -32,8 +32,8 @@ export function ScoreRing({ score, size = 80 }: Props) {
         style={{ transition: 'stroke-dasharray 0.6s ease' }}
       />
       <text x={cx} y={cx + 1} textAnchor="middle" dominantBaseline="middle"
-        fill={s} fontSize={size < 70 ? 11 : 14} fontWeight="700" fontFamily="monospace">
-        {score.toFixed(1)}
+        fill={s} fontSize={size < 70 ? 13 : 18} fontWeight="700" fontFamily="monospace">
+        {Math.round(score)}
       </text>
     </svg>
   );

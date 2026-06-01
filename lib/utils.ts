@@ -1,14 +1,14 @@
 export function scoreColor(score: number): string {
-  if (score >= 8)  return 'text-success';
-  if (score >= 5)  return 'text-warning';
-  if (score >= 2)  return 'text-orange-400';
+  if (score >= 70) return 'text-success';
+  if (score >= 40) return 'text-warning';
+  if (score >= 1)  return 'text-orange-400';
   return 'text-danger';
 }
 
 export function scoreBg(score: number): string {
-  if (score >= 8)  return 'bg-success/10 border-success/30';
-  if (score >= 5)  return 'bg-warning/10 border-warning/30';
-  if (score >= 2)  return 'bg-orange-400/10 border-orange-400/30';
+  if (score >= 70) return 'bg-success/10 border-success/30';
+  if (score >= 40) return 'bg-warning/10 border-warning/30';
+  if (score >= 1)  return 'bg-orange-400/10 border-orange-400/30';
   return 'bg-danger/10 border-danger/30';
 }
 

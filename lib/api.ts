@@ -10,6 +10,7 @@ export interface WeatherInfo {
 export interface TargetZone {
   name: string;
   efficiencyScore: number;
+  netProfitPerHour: number;
   direction: string;
   distanceKm: number;
   fuelCostMyr: number;
@@ -20,6 +21,7 @@ export interface TargetZone {
 export interface TopZone {
   name: string;
   score: number;
+  netProfitPerHour: number;
   direction: string;
   distanceKm: number;
   congestion: number;

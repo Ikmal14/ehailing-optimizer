@@ -1,8 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/harvest/run",
-      "schedule": "*/10 * * * *"
-    }
-  ]
-}
+{}

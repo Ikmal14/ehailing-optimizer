@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runHarvest } from '@/lib/server/harvester';
 
-export const runtime  = 'nodejs';
+export const runtime     = 'nodejs';
+export const dynamic     = 'force-dynamic';
 export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {

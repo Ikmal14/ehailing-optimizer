@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import redis from '@/lib/server/redis';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const raw = await redis.get('live_recommendations');

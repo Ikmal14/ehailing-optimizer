@@ -6,6 +6,7 @@ import clsx from 'clsx';
 const links = [
   { href: '/',         label: '⚡ Dashboard' },
   { href: '/zones',    label: '🗺 Zones' },
+  { href: '/about',    label: 'ℹ️ About' },
   { href: '/settings', label: '⚙️ Settings' },
 ];
 

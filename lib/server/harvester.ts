@@ -18,14 +18,21 @@ const CATEGORY_SURGE: Record<string, number> = {
   university: 1.25, residential: 1.10, tourist: 1.20, park: 1.05,
 };
 
+// Malaysia is UTC+8 with no daylight saving. Vercel servers run UTC, so we
+// shift by +8h and read the UTC fields to get Malaysia wall-clock time.
+const MYT_OFFSET_MS = 8 * 60 * 60 * 1000;
+export function nowMYT(): Date {
+  return new Date(Date.now() + MYT_OFFSET_MS);
+}
+
 function getActiveDayType(): 'weekday' | 'weekend' {
-  const d = new Date().getDay();
+  const d = nowMYT().getUTCDay();
   return d === 0 || d === 6 ? 'weekend' : 'weekday';
 }
 
 function getCurrentTimeBlock(blocks: any[], dayType: string) {
-  const now  = new Date();
-  const hhmm = now.getHours() * 60 + now.getMinutes();
+  const now  = nowMYT();
+  const hhmm = now.getUTCHours() * 60 + now.getUTCMinutes();
   return blocks.filter((b) => {
     if (b.day_type !== dayType) return false;
     const [sh, sm] = b.start_time.split(':').map(Number);
@@ -258,7 +265,7 @@ export async function runHarvest() {
     },
     fuelPrice,
     bestStartTime: recommendBestStartTime({
-      now: new Date(),
+      now: nowMYT(),
       dayType,
       blocks,
       liveBestNetPerHour: best?.netProfitPerHour ?? 0,

@@ -9,6 +9,7 @@ import { TopZonesTable } from '@/components/TopZonesTable';
 import { WeatherBadge } from '@/components/WeatherBadge';
 import { FuelPriceCard } from '@/components/FuelPriceCard';
 import { LocationSync } from '@/components/LocationSync';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { RefreshButton } from '@/components/RefreshButton';
 import { relativeTime } from '@/lib/utils';
 
@@ -31,7 +32,7 @@ export default function Dashboard() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center">
         <p className="text-4xl">📡</p>
-        <p className="text-white font-semibold">Backend offline or data pending</p>
+        <p className="text-content font-semibold">Backend offline or data pending</p>
         <p className="text-muted text-xs">Start the backend server, then refresh.</p>
         <button onClick={() => mutate()}
           className="text-xs px-4 py-2 rounded-lg bg-accent/10 border border-accent/30 text-accent">
@@ -46,11 +47,12 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between pt-2">
         <div>
-          <h1 className="text-lg font-black text-white tracking-tight">⚡ Shift Planner</h1>
+          <h1 className="text-lg font-black text-content tracking-tight">⚡ Shift Planner</h1>
           <p className="text-xs text-muted capitalize">{data.dayType} mode · {relativeTime(data.generatedAt)}</p>
         </div>
         <div className="flex items-center gap-2">
           <WeatherBadge {...data.weather} compact />
+          <ThemeToggle />
           <RefreshButton onRefresh={() => mutate()} />
         </div>
       </div>

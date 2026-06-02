@@ -18,13 +18,13 @@ export default function SettingsPage() {
   function field(key: keyof DriverParams, label: string, unit: string, help: string, step = '0.01') {
     return (
       <div className="space-y-1">
-        <label className="text-xs font-semibold text-white">{label}</label>
+        <label className="text-xs font-semibold text-content">{label}</label>
         <div className="flex items-center gap-2 bg-surface border border-border rounded-lg px-3 py-2">
           <input
             type="number" step={step}
             value={form[key] ?? ''}
             onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-            className="flex-1 bg-transparent text-white text-sm outline-none font-mono"
+            className="flex-1 bg-transparent text-content text-sm outline-none font-mono"
           />
           <span className="text-muted text-xs shrink-0">{unit}</span>
         </div>
@@ -58,7 +58,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 pt-2">
       <div>
-        <h1 className="text-lg font-black text-white">⚙️ Driver Settings</h1>
+        <h1 className="text-lg font-black text-content">⚙️ Driver Settings</h1>
         <p className="text-xs text-muted mt-1">
           These personalise the earnings math to <strong>your</strong> vehicle and starting point.
           Every recommendation — net RM/hr, fuel cost, best zone direction — is computed from these.
@@ -82,7 +82,7 @@ export default function SettingsPage() {
                      hover:bg-accent/25 disabled:opacity-40">
           {locating ? 'Locating…' : '📍 Use My Current Location'}
         </button>
-        {locMsg && <p className="text-[11px] text-white/70 text-center">{locMsg}</p>}
+        {locMsg && <p className="text-[11px] text-content/70 text-center">{locMsg}</p>}
 
         <div className="grid grid-cols-2 gap-3">
           {field('base_lat', 'Latitude', '°', 'North–south position.', '0.000001')}
@@ -131,7 +131,7 @@ export default function SettingsPage() {
         ].map(r => (
           <div key={r.time} className="flex justify-between items-start text-xs border-b border-border/40 pb-2">
             <span className="font-mono text-accent">{r.time}</span>
-            <span className="text-white/60 text-right flex-1 px-2">{r.cats}</span>
+            <span className="text-content/60 text-right flex-1 px-2">{r.cats}</span>
             <span className="text-muted text-right w-20 shrink-0">{r.day}</span>
           </div>
         ))}

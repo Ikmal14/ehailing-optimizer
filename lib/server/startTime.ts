@@ -64,8 +64,10 @@ function weatherBoost(main: string): number {
   return 0;
 }
 
+// `now` is the MYT-shifted Date (see nowMYT). Its UTC fields are MYT wall-clock,
+// so we read/write with getUTC*/setUTC* and format from UTC fields.
 function fmt(d: Date): string {
-  return d.toTimeString().slice(0, 5);
+  return d.toISOString().slice(11, 16); // "HH:MM" in the shifted (MYT) clock
 }
 
 // Find the strategy block covering a given hour, to name the window.
@@ -82,7 +84,7 @@ function blockForHour(blocks: any[], dayType: string, hour: number) {
 export function recommendBestStartTime(input: StartTimeInput): StartTimeResult {
   const { now, dayType, blocks, liveBestNetPerHour, weatherMain } = input;
   const curve = curveFor(dayType);
-  const hour  = now.getHours();
+  const hour  = now.getUTCHours(); // MYT wall-clock hour (now is +8 shifted)
   const boost = weatherBoost(weatherMain);
 
   const demandNowRaw = Math.min(1, curve[hour] + boost);
@@ -129,8 +131,8 @@ export function recommendBestStartTime(input: StartTimeInput): StartTimeResult {
   // ── Case 3: a clearly better window is coming → tell them when to start.
   if (best) {
     const target = new Date(now);
-    target.setHours(best.hour, 0, 0, 0);
-    if (best.hour <= hour) target.setDate(target.getDate() + 1); // wrapped past midnight
+    target.setUTCHours(best.hour, 0, 0, 0);
+    if (best.hour <= hour) target.setUTCDate(target.getUTCDate() + 1); // wrapped past midnight
     const goOnline = new Date(target.getTime() - LEAD_MINS * 60000);
     const minutesUntil = Math.max(0, Math.round((goOnline.getTime() - now.getTime()) / 60000));
     const blk = blockForHour(blocks, dayType, best.hour);
@@ -157,8 +159,8 @@ export function recommendBestStartTime(input: StartTimeInput): StartTimeResult {
     const fh = (hour + h) % 24;
     if (curve[fh] >= MOD_DEMAND) {
       const t = new Date(now);
-      t.setHours(fh, 0, 0, 0);
-      if (fh <= hour) t.setDate(t.getDate() + 1);
+      t.setUTCHours(fh, 0, 0, 0);
+      if (fh <= hour) t.setUTCDate(t.getUTCDate() + 1);
       recover = t;
       break;
     }

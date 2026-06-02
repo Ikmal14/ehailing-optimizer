@@ -21,7 +21,7 @@ export function Navbar() {
               'flex-1 flex flex-col items-center justify-center py-3 text-xs transition-colors',
               path === l.href
                 ? 'text-accent font-semibold'
-                : 'text-muted hover:text-white',
+                : 'text-muted hover:text-content',
             )}>
             {l.label}
           </Link>

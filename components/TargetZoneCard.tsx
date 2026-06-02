@@ -18,7 +18,7 @@ export function TargetZoneCard({ zone }: Props) {
       <div className="flex items-start gap-4">
         <ScoreRing score={zone.efficiencyScore} size={80} />
         <div className="flex-1 min-w-0">
-          <p className="text-xl font-black text-white leading-tight">{zone.name}</p>
+          <p className="text-xl font-black text-content leading-tight">{zone.name}</p>
           <p className="text-sm text-success font-mono mt-0.5">
             {zone.direction}
           </p>
@@ -39,7 +39,7 @@ export function TargetZoneCard({ zone }: Props) {
           {zone.matchedPois.slice(0, 6).map((poi, i) => (
             <div key={i} className="flex items-center gap-1.5 bg-border/30 rounded-md px-2 py-1">
               <span className="text-sm">{categoryEmoji(poi.category)}</span>
-              <span className="text-xs text-white/70 truncate">{poi.name}</span>
+              <span className="text-xs text-content/70 truncate">{poi.name}</span>
             </div>
           ))}
           {zone.matchedPois.length > 6 && (

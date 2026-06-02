@@ -26,7 +26,7 @@ export default function ZonesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-black text-white pt-2">🗺 Zone Intelligence</h1>
+      <h1 className="text-lg font-black text-content pt-2">🗺 Zone Intelligence</h1>
 
       {/* Filter tabs */}
       <div className="flex gap-1 bg-panel rounded-lg p-1 border border-border">
@@ -36,7 +36,7 @@ export default function ZonesPage() {
               'flex-1 text-xs py-1.5 rounded-md capitalize transition-all',
               filter === f
                 ? 'bg-accent/20 text-accent font-semibold'
-                : 'text-muted hover:text-white',
+                : 'text-muted hover:text-content',
             )}>
             {f}
           </button>
@@ -58,7 +58,7 @@ export default function ZonesPage() {
               <ScoreRing score={z.efficiencyScore} size={52} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="font-bold text-white text-sm truncate">{z.zoneName}</p>
+                  <p className="font-bold text-content text-sm truncate">{z.zoneName}</p>
                   {z.isBlacklisted && (
                     <span className="text-[10px] bg-danger/20 text-danger rounded px-1 shrink-0">⛔</span>
                   )}
@@ -83,7 +83,7 @@ export default function ZonesPage() {
                   ].map(s => (
                     <div key={s.label} className="bg-surface rounded-lg p-2">
                       <p className="text-xs text-muted">{s.label}</p>
-                      <p className="text-sm font-bold text-white">{s.value}</p>
+                      <p className="text-sm font-bold text-content">{s.value}</p>
                     </div>
                   ))}
                 </div>
@@ -102,7 +102,7 @@ export default function ZonesPage() {
                         <div key={j}
                           className="flex items-center gap-1.5 bg-border/30 rounded-md px-2 py-1">
                           <span>{categoryEmoji(p.category)}</span>
-                          <span className="text-xs text-white/70 truncate">{p.name}</span>
+                          <span className="text-xs text-content/70 truncate">{p.name}</span>
                         </div>
                       ))}
                     </div>

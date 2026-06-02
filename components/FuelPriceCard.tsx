@@ -31,7 +31,7 @@ export function FuelPriceCard({ fuel }: Props) {
         {others.map((i) => (
           <div key={i.label} className="bg-surface rounded-lg p-2 text-center">
             <p className="text-[10px] text-muted">{i.label}{i.hint ? ` · ${i.hint}` : ''}</p>
-            <p className="text-sm font-black text-white font-mono">RM{i.value.toFixed(2)}</p>
+            <p className="text-sm font-black text-content font-mono">RM{i.value.toFixed(2)}</p>
           </div>
         ))}
       </div>

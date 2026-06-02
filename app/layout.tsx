@@ -17,9 +17,15 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+// Apply saved theme before paint to avoid a flash of the wrong theme.
+const themeInit = `(function(){try{if(localStorage.getItem('theme')==='light'){document.documentElement.classList.add('light');}}catch(e){}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
+      </head>
       <body className="min-h-screen bg-surface">
         <main className="max-w-lg mx-auto pb-24 px-4 pt-4">
           {children}

@@ -28,7 +28,7 @@ export function WeatherBadge({
         good ? 'border-success/20 bg-success/5' : 'border-warning/30 bg-warning/5',
       )}>
         <span className="text-base leading-none">{weatherEmoji(main)}</span>
-        {tempC != null && <span className="text-xs font-bold text-white">{tempC}°C</span>}
+        {tempC != null && <span className="text-xs font-bold text-content">{tempC}°C</span>}
       </div>
     );
   }
@@ -41,7 +41,7 @@ export function WeatherBadge({
       <div className="flex items-center gap-2">
         <span className="text-2xl leading-none">{weatherEmoji(main)}</span>
         <div className="min-w-0">
-          <p className="text-sm font-bold text-white">
+          <p className="text-sm font-bold text-content">
             {tempC != null ? `${tempC}°C` : main}
             <span className="text-xs font-normal text-muted capitalize"> · {description}</span>
           </p>
@@ -77,7 +77,7 @@ function Chip({ icon, label, tone }: { icon: string; label: string; tone?: 'warn
       'text-[10px] rounded-md px-2 py-0.5 border',
       tone === 'warn'
         ? 'border-warning/30 bg-warning/10 text-warning'
-        : 'border-border bg-border/30 text-white/70',
+        : 'border-border bg-border/30 text-content/70',
     )}>
       {icon} {label}
     </span>

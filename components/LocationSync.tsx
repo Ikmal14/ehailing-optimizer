@@ -46,7 +46,7 @@ export function LocationSync({ onSynced }: Props) {
     <button
       onClick={() => run(true)}
       className="w-full flex items-center justify-center gap-2 text-[11px] text-muted
-                 hover:text-white transition-colors py-1">
+                 hover:text-content transition-colors py-1">
       <span>{label[state]}</span>
       {(state === 'denied' || state === 'default') && (
         <span className="underline text-accent">retry</span>

@@ -4,8 +4,24 @@
 
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
 
+/* Theme colours as RGB channels so Tailwind opacity modifiers work
+   (e.g. text-content/70). Dark is the default. */
 :root {
+  --surface: 15 17 23;
+  --panel:   26 29 39;
+  --border:  42 45 58;
+  --content: 241 245 249;
+  --muted:   107 114 128;
   color-scheme: dark;
+}
+
+.light {
+  --surface: 245 246 248;
+  --panel:   255 255 255;
+  --border:  223 227 233;
+  --content: 17 24 39;
+  --muted:   100 110 125;
+  color-scheme: light;
 }
 
 * {
@@ -13,10 +29,11 @@
 }
 
 body {
-  background-color: #0f1117;
-  color: #f1f5f9;
+  background-color: rgb(var(--surface));
+  color: rgb(var(--content));
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   overscroll-behavior: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .safe-bottom {
@@ -25,5 +42,5 @@ body {
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #0f1117; }
-::-webkit-scrollbar-thumb { background: #2a2d3a; border-radius: 2px; }
+::-webkit-scrollbar-track { background: rgb(var(--surface)); }
+::-webkit-scrollbar-thumb { background: rgb(var(--border)); border-radius: 2px; }

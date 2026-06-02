@@ -18,8 +18,8 @@ export default function AboutPage() {
       {/* Hero */}
       <div className="rounded-xl border border-accent/30 bg-accent/5 p-5 text-center space-y-2">
         <p className="text-4xl">⚡</p>
-        <h1 className="text-xl font-black text-white">Strategic Shift Planner</h1>
-        <p className="text-sm text-white/70 leading-relaxed">
+        <h1 className="text-xl font-black text-content">Strategic Shift Planner</h1>
+        <p className="text-sm text-content/70 leading-relaxed">
           Your co-pilot for working smarter, not longer. It tells you{' '}
           <span className="text-accent font-semibold">when</span> to start,{' '}
           <span className="text-accent font-semibold">where</span> to go, and{' '}
@@ -29,12 +29,12 @@ export default function AboutPage() {
       </div>
 
       <Section title="What this app is">
-        <p className="text-sm text-white/80 leading-relaxed">
+        <p className="text-sm text-content/80 leading-relaxed">
           Driving for e-hailing in the Klang Valley is a guessing game. You log on and hope
           you picked a good spot at a good time. Some hours are gold; others you burn fuel
           circling for a single ride — what drivers call <em>“sidai”</em> (left hanging, idle).
         </p>
-        <p className="text-sm text-white/80 leading-relaxed">
+        <p className="text-sm text-content/80 leading-relaxed">
           The Strategic Shift Planner removes the guesswork. It watches live traffic and
           weather across the Klang Valley and works out, in plain ringgit, which area is
           paying best <strong>right now</strong> — and warns you off the ones that look busy
@@ -43,11 +43,11 @@ export default function AboutPage() {
       </Section>
 
       <Section title="How it helps you">
-        <ul className="space-y-3 text-sm text-white/80">
+        <ul className="space-y-3 text-sm text-content/80">
           <li className="flex gap-3">
             <span className="text-lg leading-none">⏰</span>
             <span>
-              <strong className="text-white">Best Start Time.</strong> Instead of logging on
+              <strong className="text-content">Best Start Time.</strong> Instead of logging on
               and waiting, it tells you the exact time to flip online so you arrive just as
               demand peaks — not 40 minutes early burning fuel.
             </span>
@@ -55,7 +55,7 @@ export default function AboutPage() {
           <li className="flex gap-3">
             <span className="text-lg leading-none">🎯</span>
             <span>
-              <strong className="text-white">My Destination Target.</strong> It names the one
+              <strong className="text-content">My Destination Target.</strong> It names the one
               zone worth driving to right now and the direction to head, so you can set your
               destination filter with confidence.
             </span>
@@ -63,7 +63,7 @@ export default function AboutPage() {
           <li className="flex gap-3">
             <span className="text-lg leading-none">⛔</span>
             <span>
-              <strong className="text-white">Blacklist / Trap Zones.</strong> Some hotspots
+              <strong className="text-content">Blacklist / Trap Zones.</strong> Some hotspots
               look tempting but the traffic eats your earnings alive. The app flags these so
               you don’t chase demand that doesn’t actually pay.
             </span>
@@ -71,7 +71,7 @@ export default function AboutPage() {
           <li className="flex gap-3">
             <span className="text-lg leading-none">🌧️</span>
             <span>
-              <strong className="text-white">Weather-aware.</strong> Rain changes everything —
+              <strong className="text-content">Weather-aware.</strong> Rain changes everything —
               demand jumps and fares surge. The app factors live weather into every
               recommendation automatically.
             </span>
@@ -79,7 +79,7 @@ export default function AboutPage() {
           <li className="flex gap-3">
             <span className="text-lg leading-none">💸</span>
             <span>
-              <strong className="text-white">Real money, not vague scores.</strong> Every zone
+              <strong className="text-content">Real money, not vague scores.</strong> Every zone
               is rated by estimated <strong>net ringgit per hour</strong> after fuel — the
               number that actually matters to your take-home.
             </span>
@@ -88,12 +88,12 @@ export default function AboutPage() {
       </Section>
 
       <Section title="How the score is calculated">
-        <p className="text-sm text-white/80 leading-relaxed">
+        <p className="text-sm text-content/80 leading-relaxed">
           The big number you see on each zone is a <strong>0–100 earnings score</strong>. It
           answers one question: <em>“If I work this area right now, roughly how much will I
           actually take home per hour?”</em>
         </p>
-        <p className="text-sm text-white/80 leading-relaxed">
+        <p className="text-sm text-content/80 leading-relaxed">
           What makes it honest is that it counts your <strong>whole working cycle</strong>, not
           just the paid trip:
         </p>
@@ -109,7 +109,7 @@ export default function AboutPage() {
             <div key={r.label} className="flex gap-3 bg-surface rounded-lg p-3">
               <span className="text-base leading-none">{r.icon}</span>
               <div>
-                <p className="text-sm font-semibold text-white">{r.label}</p>
+                <p className="text-sm font-semibold text-content">{r.label}</p>
                 <p className="text-xs text-muted">{r.desc}</p>
               </div>
             </div>
@@ -123,7 +123,7 @@ export default function AboutPage() {
           </p>
         </div>
 
-        <p className="text-sm text-white/80 leading-relaxed">
+        <p className="text-sm text-content/80 leading-relaxed">
           This is why a fancy long-fare area can score <em>lower</em> than a humble spot doing
           quick back-to-back rides: the quick spot keeps you earning, while the fancy one
           leaves you idle between trips.
@@ -134,19 +134,19 @@ export default function AboutPage() {
         <div className="space-y-2 text-sm">
           <div className="flex items-center gap-3">
             <span className="h-3 w-3 rounded-full bg-success shrink-0" />
-            <span className="text-white/80"><strong className="text-success">70–100</strong> — Strong earner. Head here.</span>
+            <span className="text-content/80"><strong className="text-success">70–100</strong> — Strong earner. Head here.</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="h-3 w-3 rounded-full bg-warning shrink-0" />
-            <span className="text-white/80"><strong className="text-warning">40–69</strong> — Decent. Worth it if nearby.</span>
+            <span className="text-content/80"><strong className="text-warning">40–69</strong> — Decent. Worth it if nearby.</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="h-3 w-3 rounded-full bg-orange-400 shrink-0" />
-            <span className="text-white/80"><strong className="text-orange-400">1–39</strong> — Weak. Only if you’re already there.</span>
+            <span className="text-content/80"><strong className="text-orange-400">1–39</strong> — Weak. Only if you’re already there.</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="h-3 w-3 rounded-full bg-danger shrink-0" />
-            <span className="text-white/80"><strong className="text-danger">0 / Blacklisted</strong> — Trap zone. Avoid — it won’t cover your time and fuel.</span>
+            <span className="text-content/80"><strong className="text-danger">0 / Blacklisted</strong> — Trap zone. Avoid — it won’t cover your time and fuel.</span>
           </div>
         </div>
       </Section>

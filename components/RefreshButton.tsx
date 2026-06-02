@@ -18,7 +18,7 @@ export function RefreshButton({ onRefresh }: Props) {
       onClick={trigger}
       disabled={loading}
       className="text-xs px-3 py-1.5 rounded-lg border border-border bg-panel
-                 text-muted hover:text-white hover:border-accent/40 transition-all
+                 text-muted hover:text-content hover:border-accent/40 transition-all
                  disabled:opacity-40 disabled:cursor-not-allowed">
       {loading ? (
         <span className="flex items-center gap-1.5">

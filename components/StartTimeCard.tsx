@@ -42,7 +42,7 @@ export function StartTimeCard({ data }: Props) {
         )}
       </div>
 
-      <p className="text-xs text-white/70 leading-relaxed border-t border-border/40 pt-3">
+      <p className="text-xs text-content/70 leading-relaxed border-t border-border/40 pt-3">
         {data.message}
       </p>
 
@@ -61,7 +61,7 @@ export function StartTimeCard({ data }: Props) {
         <div className="flex flex-wrap gap-1.5">
           {data.targetCategories.map((cat) => (
             <span key={cat}
-              className="text-xs bg-border/60 rounded-md px-2 py-0.5 text-white/60">
+              className="text-xs bg-border/60 rounded-md px-2 py-0.5 text-content/60">
               {categoryEmoji(cat)} {cat}
             </span>
           ))}

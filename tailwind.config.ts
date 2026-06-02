@@ -8,14 +8,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        surface:  '#0f1117',
-        panel:    '#1a1d27',
-        border:   '#2a2d3a',
-        accent:   '#00e5ff',
-        success:  '#00c853',
-        warning:  '#ffab00',
-        danger:   '#ff3d3d',
-        muted:    '#6b7280',
+        surface:  'rgb(var(--surface) / <alpha-value>)',
+        panel:    'rgb(var(--panel) / <alpha-value>)',
+        border:   'rgb(var(--border) / <alpha-value>)',
+        content:  'rgb(var(--content) / <alpha-value>)',
+        muted:    'rgb(var(--muted) / <alpha-value>)',
+        accent:   '#00b8d4',
+        success:  '#00a844',
+        warning:  '#e6930a',
+        danger:   '#ef4444',
       },
       fontFamily: {
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],

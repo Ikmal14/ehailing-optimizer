@@ -24,7 +24,7 @@ export function TopZonesTable({ zones }: Props) {
             <ScoreRing score={z.score} size={44} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-white truncate">{z.name}</p>
+                <p className="text-sm font-semibold text-content truncate">{z.name}</p>
                 {z.blacklisted && (
                   <span className="text-[10px] bg-danger/20 text-danger rounded px-1.5 py-0.5 shrink-0">
                     BLACKLISTED

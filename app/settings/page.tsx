@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import { api, type DriverParams } from '@/lib/api';
+import { api, type DriverParams, getAccessKey, setAccessKey } from '@/lib/api';
 import { getCurrentPosition } from '@/lib/geo';
 
 export default function SettingsPage() {
@@ -12,8 +12,10 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locMsg, setLocMsg] = useState<string | null>(null);
+  const [accessKey, setKey] = useState('');
 
   useEffect(() => { if (data) setForm(data); }, [data]);
+  useEffect(() => { setKey(getAccessKey()); }, []);
 
   function field(key: keyof DriverParams, label: string, unit: string, help: string, step = '0.01') {
     return (
@@ -63,6 +65,26 @@ export default function SettingsPage() {
           These personalise the earnings math to <strong>your</strong> vehicle and starting point.
           Every recommendation — net RM/hr, fuel cost, best zone direction — is computed from these.
         </p>
+      </div>
+
+      {/* Access key — required to save changes (owner only) */}
+      <div className="rounded-xl border border-border bg-panel p-4 space-y-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-accent">🔒 Access Key</p>
+          <p className="text-[10px] text-muted mt-1">
+            Required to save settings on your account. This is your <code>CRON_SECRET</code> —
+            entered once and stored only on this device.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 bg-surface border border-border rounded-lg px-3 py-2">
+          <input
+            type="password"
+            value={accessKey}
+            onChange={e => { setKey(e.target.value); setAccessKey(e.target.value); }}
+            placeholder="Enter access key"
+            className="flex-1 bg-transparent text-content text-sm outline-none font-mono"
+          />
+        </div>
       </div>
 
       {/* Starting location */}

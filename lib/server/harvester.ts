@@ -3,6 +3,7 @@ import pool from './db';
 import redis from './redis';
 import { calculateZoneScore } from './score';
 import { recommendBestStartTime } from './startTime';
+import { acquireHarvestLock } from './guard';
 
 const TOMTOM_KEY      = process.env.TOMTOM_API_KEY;
 const OPENWEATHER_KEY = process.env.OPENWEATHER_API_KEY;
@@ -16,6 +17,8 @@ const WEATHER_PENALTY: Record<string, number> = {
 const CATEGORY_SURGE: Record<string, number> = {
   transit: 1.40, office: 1.30, mall: 1.20, hospital: 1.15,
   university: 1.25, residential: 1.10, tourist: 1.20, park: 1.05,
+  airport: 1.50, nightlife: 1.35, hotel: 1.25, stadium: 1.30,
+  market: 1.15, government: 1.20, school: 1.15,
 };
 
 // Malaysia is UTC+8 with no daylight saving. Vercel servers run UTC, so we
@@ -28,6 +31,27 @@ export function nowMYT(): Date {
 function getActiveDayType(): 'weekday' | 'weekend' {
   const d = nowMYT().getUTCDay();
   return d === 0 || d === 6 ? 'weekend' : 'weekday';
+}
+
+// 2026 Malaysia (national) public holidays — higher leisure/travel demand.
+const MY_HOLIDAYS_2026 = new Set<string>([
+  '2026-01-01', '2026-02-01', '2026-02-17', '2026-02-18', // New Year, Federal Territory, CNY
+  '2026-03-21', '2026-05-01', '2026-05-01',               // Hari Raya (approx), Labour Day
+  '2026-05-31', '2026-06-01', '2026-06-06',               // Wesak, Agong's birthday
+  '2026-08-31', '2026-09-16', '2026-11-08', '2026-12-25', // Merdeka, Malaysia Day, Deepavali, Christmas
+]);
+
+// Demand multiplier from payday and public-holiday effects (1.0 = normal).
+function demandBoostMYT(): number {
+  const now  = nowMYT();
+  const dom  = now.getUTCDate();
+  const iso  = now.toISOString().slice(0, 10);
+  let boost  = 1.0;
+  // Payday window: end of month (25th–end) and start (1st–2nd) — more spending/rides.
+  if (dom >= 25 || dom <= 2) boost *= 1.15;
+  // Public holiday: leisure travel up.
+  if (MY_HOLIDAYS_2026.has(iso)) boost *= 1.20;
+  return boost;
 }
 
 function getCurrentTimeBlock(blocks: any[], dayType: string) {
@@ -130,8 +154,19 @@ async function fetchFuelPrice() {
   }
 }
 
-export async function runHarvest() {
-  const zonesRes  = await pool.query('SELECT id, name, base_speed_kmh, lat, lng FROM zones ORDER BY id');
+export async function runHarvest(opts: { force?: boolean } = {}) {
+  // Debounce: cap how often external APIs are actually hit (cost / abuse guard).
+  // If a harvest ran in the last 45s, return the cached recommendations instead.
+  if (!opts.force) {
+    const allowed = await acquireHarvestLock(45);
+    if (!allowed) {
+      const cached = await redis.get('live_recommendations');
+      if (cached) return JSON.parse(cached);
+      // No cache yet — fall through and harvest anyway.
+    }
+  }
+
+  const zonesRes  = await pool.query('SELECT id, name, base_speed_kmh, lat, lng, demand_weight FROM zones ORDER BY id');
   const poisRes   = await pool.query('SELECT id, zone_id, name, category, lat, lng FROM pois');
   const [blocksRes, driverRes] = await Promise.all([
     pool.query('SELECT * FROM strategy_blocks'),
@@ -155,6 +190,7 @@ export async function runHarvest() {
   const dayType        = getActiveDayType();
   const activeBlocks   = getCurrentTimeBlock(blocks, dayType);
   const activeCategories = [...new Set(activeBlocks.flatMap((b: any) => b.target_categories))] as string[];
+  const demandBoost    = demandBoostMYT();
 
   // Weather at the driver's actual base; fuel price nationwide.
   const [weather, fuelPrice] = await Promise.all([
@@ -173,11 +209,12 @@ export async function runHarvest() {
     const pois        = poisByZone[zone.id] || [];
     const matchedPois = pois.filter((p: any) => activeCategories.includes(p.category));
 
-    // Demand index = sum of matched-POI category weights (more/higher-value POIs → more rides → less wait).
-    const demandIndex = matchedPois.reduce(
+    // Demand index = matched-POI category weights × zone population weight × time-of-day boost.
+    const poiDemand = matchedPois.reduce(
       (sum: number, p: any) => sum + (CATEGORY_SURGE[p.category] ?? 1.0),
       0,
     );
+    const demandIndex = poiDemand * parseFloat(zone.demand_weight ?? '1') * demandBoost;
 
     // Active category for this zone = the highest-weight matched category present here.
     const activeCategory =

@@ -102,6 +102,20 @@ async function get<T>(path: string): Promise<T> {
   return res.json();
 }
 
+// Owner access key (stored locally, set once in Settings) — sent on writes.
+const ACCESS_KEY = 'app_access_key';
+export function getAccessKey(): string {
+  if (typeof localStorage === 'undefined') return '';
+  return localStorage.getItem(ACCESS_KEY) ?? '';
+}
+export function setAccessKey(v: string) {
+  localStorage.setItem(ACCESS_KEY, v);
+}
+function authHeaders(): Record<string, string> {
+  const k = getAccessKey();
+  return k ? { 'x-app-secret': k } : {};
+}
+
 export const api = {
   recommendations: () => get<Recommendations>('/api/recommendations'),
   rankedZones:     () => get<ZoneMetric[]>('/api/zones/ranked'),
@@ -110,7 +124,7 @@ export const api = {
   updateDriver: (body: Partial<DriverParams>) =>
     fetch(`${BASE}/api/driver-params`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(body),
     }),
 };

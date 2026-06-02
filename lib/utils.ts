@@ -38,7 +38,8 @@ export function categoryEmoji(cat: string): string {
   const map: Record<string, string> = {
     transit: '🚉', office: '🏢', mall: '🛍️',
     hospital: '🏥', university: '🎓', residential: '🏘️',
-    tourist: '🗺️', park: '🌳',
+    tourist: '🗺️', park: '🌳', airport: '✈️', nightlife: '🌃',
+    hotel: '🏨', stadium: '🏟️', market: '🛒', government: '🏛️', school: '🏫',
   };
   return map[cat] ?? '📍';
 }

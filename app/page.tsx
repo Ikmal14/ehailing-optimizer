@@ -18,9 +18,11 @@ export default function Dashboard() {
     'recommendations',
     api.recommendations,
     {
-      refreshInterval: 60_000,
+      refreshInterval: 120_000,   // data changes ~every 10 min; poll lightly
+      dedupingInterval: 60_000,   // collapse duplicate requests
+      keepPreviousData: true,     // no flicker on refresh
+      revalidateOnFocus: false,   // don't re-hit the API on every tab focus
       onError: () => {
-        // Auto-trigger harvest if Redis cache is empty
         api.triggerHarvest().then(() => setTimeout(() => mutate(), 5000));
       },
     },

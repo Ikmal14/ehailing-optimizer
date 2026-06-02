@@ -10,7 +10,10 @@ import clsx from 'clsx';
 
 export default function ZonesPage() {
   const { data, isLoading, error } = useSWR<ZoneMetric[]>('ranked-zones', api.rankedZones, {
-    refreshInterval: 60_000,
+    refreshInterval: 120_000,
+    dedupingInterval: 60_000,
+    keepPreviousData: true,
+    revalidateOnFocus: false,
   });
   const [expanded, setExpanded] = useState<number | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'blacklisted'>('all');

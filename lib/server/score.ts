@@ -26,10 +26,16 @@ const PROFILES: Record<string, HistoricalProfile> = {
   transit:     { distanceKm: 4,  baseTimeMins: 10 },
   residential: { distanceKm: 4,  baseTimeMins: 10 },
   mall:        { distanceKm: 6,  baseTimeMins: 15 },
-  nightlife:   { distanceKm: 6,  baseTimeMins: 15 },
+  nightlife:   { distanceKm: 7,  baseTimeMins: 18 },
   tourist:     { distanceKm: 6,  baseTimeMins: 15 },
   hospital:    { distanceKm: 8,  baseTimeMins: 20 },
   university:  { distanceKm: 8,  baseTimeMins: 20 },
+  airport:     { distanceKm: 18, baseTimeMins: 30 }, // long, lucrative airport runs
+  hotel:       { distanceKm: 9,  baseTimeMins: 20 },
+  stadium:     { distanceKm: 8,  baseTimeMins: 22 },
+  market:      { distanceKm: 4,  baseTimeMins: 12 },
+  government:  { distanceKm: 7,  baseTimeMins: 18 },
+  school:      { distanceKm: 5,  baseTimeMins: 14 },
 };
 
 const DEFAULT_PROFILE: HistoricalProfile = { distanceKm: 8, baseTimeMins: 20 };

@@ -90,25 +90,50 @@ function bearingLabel(deg: number) {
   return ['N','NE','E','SE','S','SW','W','NW'][Math.round(deg / 45) % 8];
 }
 
-async function fetchTrafficFlow(lat: number, lng: number) {
+// Cache TTLs (seconds). These — NOT the harvest cadence — govern external API
+// usage, so adding zones never multiplies calls beyond 1/zone per TTL window.
+const TRAFFIC_TTL = 900;    // 15 min — TomTom (free 2500/day): 17 zones → ~1630/day
+const WEATHER_TTL = 900;    // 15 min — OpenWeather
+const FUEL_TTL    = 21600;  // 6 h    — data.gov.my (weekly data)
+
+// Generic cached fetch: serve from Redis if warm, else call fn and cache.
+async function cached<T>(key: string, ttl: number, fn: () => Promise<T>): Promise<T> {
   try {
-    const { data } = await axios.get(
-      'https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json',
-      { params: { point: `${lat},${lng}`, key: TOMTOM_KEY }, timeout: 8000 }
-    );
-    const fd = data.flowSegmentData;
-    return {
-      currentSpeed:    fd.currentSpeed,
-      freeFlowSpeed:   fd.freeFlowSpeed,
-      confidence:      fd.confidence,
-      congestionRatio: fd.currentSpeed / fd.freeFlowSpeed,
-    };
-  } catch {
-    return { currentSpeed: 30, freeFlowSpeed: 50, confidence: 0, congestionRatio: 0.6 };
-  }
+    const hit = await redis.get(key);
+    if (hit) return JSON.parse(hit) as T;
+  } catch {}
+  const val = await fn();
+  try { await redis.set(key, JSON.stringify(val), 'EX', ttl); } catch {}
+  return val;
+}
+
+async function fetchTrafficFlow(lat: number, lng: number) {
+  return cached(`tf:${lat}:${lng}`, TRAFFIC_TTL, async () => {
+    try {
+      const { data } = await axios.get(
+        'https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json',
+        { params: { point: `${lat},${lng}`, key: TOMTOM_KEY }, timeout: 8000 }
+      );
+      const fd = data.flowSegmentData;
+      return {
+        currentSpeed:    fd.currentSpeed,
+        freeFlowSpeed:   fd.freeFlowSpeed,
+        confidence:      fd.confidence,
+        congestionRatio: fd.currentSpeed / fd.freeFlowSpeed,
+      };
+    } catch {
+      return { currentSpeed: 30, freeFlowSpeed: 50, confidence: 0, congestionRatio: 0.6 };
+    }
+  });
 }
 
 async function fetchWeather(lat: number, lng: number) {
+  // Round to ~1km grid so nearby driver positions share a cache entry.
+  const gk = `wx:${lat.toFixed(2)}:${lng.toFixed(2)}`;
+  return cached(gk, WEATHER_TTL, () => fetchWeatherLive(lat, lng));
+}
+
+async function fetchWeatherLive(lat: number, lng: number) {
   try {
     const { data } = await axios.get('https://api.openweathermap.org/data/2.5/weather', {
       params: { lat, lon: lng, appid: OPENWEATHER_KEY, units: 'metric' },
@@ -133,6 +158,10 @@ async function fetchWeather(lat: number, lng: number) {
 // Official Malaysian weekly retail fuel prices from data.gov.my (free, no key).
 // RON95 is government-capped (long stable at RM2.05); RON97 & diesel float weekly.
 async function fetchFuelPrice() {
+  return cached('fuel:my', FUEL_TTL, fetchFuelPriceLive);
+}
+
+async function fetchFuelPriceLive() {
   try {
     const { data } = await axios.get('https://api.data.gov.my/data-catalogue', {
       params: { id: 'fuelprice', limit: 1, sort: '-date' },
@@ -201,13 +230,18 @@ export async function runHarvest(opts: { force?: boolean } = {}) {
   const zoneMetrics: any[] = [];
 
   async function processZone(zone: any) {
-    const traffic  = await fetchTrafficFlow(parseFloat(zone.lat), parseFloat(zone.lng));
     const distance = haversine(
       parseFloat(driver.base_lat), parseFloat(driver.base_lng),
       parseFloat(zone.lat), parseFloat(zone.lng)
     );
     const pois        = poisByZone[zone.id] || [];
     const matchedPois = pois.filter((p: any) => activeCategories.includes(p.category));
+
+    // OPTIMIZATION: a zone with no active-category POIs scores 0 regardless of
+    // traffic, so skip the TomTom call entirely (saves API quota off-peak).
+    const traffic = matchedPois.length === 0
+      ? { currentSpeed: 30, freeFlowSpeed: 50, confidence: 0, congestionRatio: 0.6 }
+      : await fetchTrafficFlow(parseFloat(zone.lat), parseFloat(zone.lng));
 
     // Demand index = matched-POI category weights × zone population weight × time-of-day boost.
     const poiDemand = matchedPois.reduce(

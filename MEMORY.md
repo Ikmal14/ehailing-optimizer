@@ -52,6 +52,19 @@ hours ahead, since free APIs give no future traffic. Returns `demandNow` 0–100
 - **Cron is best-effort backup:** `.github/workflows/harvest.yml` POSTs `/api/harvest/run` every
   10 min. Vercel Hobby blocks sub-daily cron, hence GitHub Actions. GH scheduled runs can be
   delayed and are disabled after 60 days of repo inactivity.
+- **`/api/harvest/run` now requires the shared secret** (`checkSecret`). Callers must send
+  `x-app-secret`: the browser sends it via `authHeaders()` (owner's access key from Settings),
+  and the cron workflow sends `${{ secrets.CRON_SECRET }}`. **A GitHub Actions repo secret named
+  `CRON_SECRET` (same value as the Vercel env var) MUST exist or the cron gets 401.** Inline
+  refresh in `/api/recommendations` calls `runHarvest()` in-process (no HTTP), so it needs no secret.
+- **`checkSecret` fails CLOSED:** no `APP_SECRET`/`CRON_SECRET` env → 503 (not open). Uses
+  `timingSafeEqual`. Since `CRON_SECRET` is set on Vercel, live behaviour is unchanged.
+- **Driver base is clamped to a Greater Klang Valley bbox** in `app/api/driver-params/route.ts`
+  (`KV_LAT 2.6–3.5`, `KV_LNG 101.2–102.0`). Gotcha that prompted it: a stray GPS fix (or stale
+  value) persisted a base at lat 4.0/lng 101.29 (Perak), making every zone read ~100 km away —
+  it's straight-line haversine in **km**, not a miles bug. Default base = PJ `3.1073, 101.6369`.
+- **Harvest lock TTL is 60s** (was 45s) — must exceed function `maxDuration` (30s) so it can't
+  expire mid-harvest and let a second harvest double-hit TomTom.
 - **Theme:** colours are CSS variables (RGB-channel triplets) in `globals.css`; Tailwind maps
   `surface/panel/border/content/muted` to `rgb(var(--x) / <alpha>)`. Use `text-content` NOT
   `text-white` (white doesn't flip in light mode). `.light` class on `<html>`; no-flash init

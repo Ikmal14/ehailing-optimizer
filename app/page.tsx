@@ -72,30 +72,32 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Best start time */}
-      <StartTimeCard data={data.bestStartTime} />
+      {/* On desktop, split into two columns; on mobile this collapses to a
+          single column that renders the left group then the right group. */}
+      <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+        {/* Primary column */}
+        <div className="space-y-4">
+          <StartTimeCard data={data.bestStartTime} />
 
-      {/* Target zone */}
-      {data.targetZone
-        ? <TargetZoneCard zone={data.targetZone} />
-        : (
-          <div className="rounded-xl border border-border bg-panel p-4 text-center">
-            <p className="text-muted text-sm">No profitable zone found for current conditions.</p>
-          </div>
-        )
-      }
+          {data.targetZone
+            ? <TargetZoneCard zone={data.targetZone} />
+            : (
+              <div className="rounded-xl border border-border bg-panel p-4 text-center">
+                <p className="text-muted text-sm">No profitable zone found for current conditions.</p>
+              </div>
+            )
+          }
 
-      {/* Weather detail */}
-      <WeatherBadge {...data.weather} />
+          <WeatherBadge {...data.weather} />
+        </div>
 
-      {/* Fuel price */}
-      {data.fuelPrice && <FuelPriceCard fuel={data.fuelPrice} />}
-
-      {/* Blacklist */}
-      <BlacklistBanner zones={data.blacklistedZones} />
-
-      {/* Zone rankings */}
-      <TopZonesTable zones={data.topZones} />
+        {/* Secondary column */}
+        <div className="space-y-4">
+          {data.fuelPrice && <FuelPriceCard fuel={data.fuelPrice} />}
+          <BlacklistBanner zones={data.blacklistedZones} />
+          <TopZonesTable zones={data.topZones} />
+        </div>
+      </div>
 
       <p className="text-center text-[10px] text-muted pb-2">
         Auto-updates every 10 min · Traffic: TomTom · Weather: OpenWeather · Fuel: data.gov.my

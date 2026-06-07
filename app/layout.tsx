@@ -13,8 +13,7 @@ export const viewport: Viewport = {
   themeColor: '#0f1117',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // Pinch-zoom intentionally left enabled (accessibility — WCAG 1.4.4).
 };
 
 // Apply saved theme before paint to avoid a flash of the wrong theme.
@@ -27,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
       <body className="min-h-screen bg-surface">
-        <main className="max-w-lg mx-auto pb-24 px-4 pt-4">
+        <main className="max-w-lg lg:max-w-6xl mx-auto pb-24 px-4 safe-top">
           {children}
         </main>
         <Navbar />

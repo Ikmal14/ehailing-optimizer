@@ -14,11 +14,11 @@ export function Navbar() {
   const path = usePathname();
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-panel border-t border-border safe-bottom">
-      <div className="max-w-lg mx-auto flex">
+      <div className="max-w-lg lg:max-w-2xl mx-auto flex">
         {links.map((l) => (
           <Link key={l.href} href={l.href}
             className={clsx(
-              'flex-1 flex flex-col items-center justify-center py-3 text-xs transition-colors',
+              'flex-1 flex flex-col items-center justify-center py-3 min-h-[52px] text-xs transition-colors',
               path === l.href
                 ? 'text-accent font-semibold'
                 : 'text-muted hover:text-content',

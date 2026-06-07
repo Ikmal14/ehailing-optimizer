@@ -22,7 +22,7 @@ export function ScoreRing({ score, size = 80 }: Props) {
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={cx} cy={cx} r={r} fill="none" stroke="#2a2d3a" strokeWidth={6} />
+      <circle cx={cx} cy={cx} r={r} fill="none" style={{ stroke: 'rgb(var(--border))' }} strokeWidth={6} />
       <circle
         cx={cx} cy={cx} r={r} fill="none"
         stroke={s} strokeWidth={6}

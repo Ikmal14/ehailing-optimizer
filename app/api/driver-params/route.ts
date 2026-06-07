@@ -18,6 +18,12 @@ function num(v: unknown, min: number, max: number): number | null {
   return Math.min(max, Math.max(min, n));
 }
 
+// Greater Klang Valley bounding box (Sepang/KLIA → Rawang, Klang → Semenyih).
+// The driver base MUST stay inside this — a stray GPS fix from elsewhere would
+// otherwise persist a base 100+ km away and wreck every distance/fuel estimate.
+const KV_LAT = { min: 2.6, max: 3.5 };
+const KV_LNG = { min: 101.2, max: 102.0 };
+
 export async function PATCH(req: NextRequest) {
   const limited = await rateLimit(req, { limit: 20, windowSec: 60, bucket: 'driver' });
   if (limited) return limited;
@@ -30,8 +36,8 @@ export async function PATCH(req: NextRequest) {
 
   const fuel_efficiency      = num(body.fuel_efficiency, 1, 100);
   const fuel_price_myr        = num(body.fuel_price_myr, 0, 20);
-  const base_lat             = num(body.base_lat, -90, 90);
-  const base_lng             = num(body.base_lng, -180, 180);
+  const base_lat             = num(body.base_lat, KV_LAT.min, KV_LAT.max);
+  const base_lng             = num(body.base_lng, KV_LNG.min, KV_LNG.max);
   const min_profit_threshold = num(body.min_profit_threshold, 0, 1000);
 
   await pool.query(

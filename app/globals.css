@@ -40,6 +40,12 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Top padding (= Tailwind pt-4) plus the notch / status-bar inset, so the
+   header never collides with the clock on notched phones in standalone mode. */
+.safe-top {
+  padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: rgb(var(--surface)); }

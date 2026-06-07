@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import redis from './redis';
 
 // ── Rate limiting (Redis fixed window, per IP) ───────────────────────────────
@@ -31,15 +32,20 @@ export async function rateLimit(
 // GitHub cron sends it as a header. Reads stay open; writes/triggers require it.
 export function checkSecret(req: NextRequest): NextResponse | null {
   const expected = process.env.APP_SECRET || process.env.CRON_SECRET;
-  // If no secret is configured, don't lock the owner out — but warn in logs.
+  // Fail CLOSED: a missing secret is a misconfiguration, not a reason to expose
+  // mutating endpoints to the world. Reject rather than silently allow.
   if (!expected) {
-    console.warn('[guard] APP_SECRET not set — mutating endpoint is UNPROTECTED.');
-    return null;
+    console.error('[guard] No APP_SECRET/CRON_SECRET configured — refusing request.');
+    return NextResponse.json({ error: 'Server not configured' }, { status: 503 });
   }
   const provided =
     req.headers.get('x-app-secret') ||
-    req.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
-  if (provided !== expected) {
+    req.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
+    '';
+  // Constant-time comparison to avoid leaking the secret via timing.
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   return null;
@@ -47,7 +53,9 @@ export function checkSecret(req: NextRequest): NextResponse | null {
 
 // ── Harvest debounce (caps external API cost regardless of caller) ───────────
 // Returns true if a real harvest is allowed now; false if one ran too recently.
-export async function acquireHarvestLock(minIntervalSec = 45): Promise<boolean> {
+// TTL must exceed the function's maxDuration (30s) so the lock can't expire
+// mid-harvest and let a second harvest double-hit the external APIs.
+export async function acquireHarvestLock(minIntervalSec = 60): Promise<boolean> {
   try {
     // SET key only if not exists, with TTL — atomic debounce.
     const ok = await redis.set('harvest_lock', '1', 'EX', minIntervalSec, 'NX');

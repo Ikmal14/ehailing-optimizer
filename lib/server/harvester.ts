@@ -185,9 +185,9 @@ async function fetchFuelPriceLive() {
 
 export async function runHarvest(opts: { force?: boolean } = {}) {
   // Debounce: cap how often external APIs are actually hit (cost / abuse guard).
-  // If a harvest ran in the last 45s, return the cached recommendations instead.
+  // If a harvest ran in the last 60s, return the cached recommendations instead.
   if (!opts.force) {
-    const allowed = await acquireHarvestLock(45);
+    const allowed = await acquireHarvestLock(60);
     if (!allowed) {
       const cached = await redis.get('live_recommendations');
       if (cached) return JSON.parse(cached);

@@ -13,9 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger harvest
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           echo "Triggering harvest at $(date -u)"
           code=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            -H "x-app-secret: ${CRON_SECRET}" \
             https://ehailing-optimizer.vercel.app/api/harvest/run)
           echo "HTTP $code"
           # Treat 2xx as success; fail the run otherwise so it's visible in Actions.

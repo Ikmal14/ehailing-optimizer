@@ -120,7 +120,7 @@ export const api = {
   recommendations: () => get<Recommendations>('/api/recommendations'),
   rankedZones:     () => get<ZoneMetric[]>('/api/zones/ranked'),
   driverParams:    () => get<DriverParams>('/api/driver-params'),
-  triggerHarvest:  () => fetch(`${BASE}/api/harvest/run`, { method: 'POST' }),
+  triggerHarvest:  () => fetch(`${BASE}/api/harvest/run`, { method: 'POST', headers: authHeaders() }),
   updateDriver: (body: Partial<DriverParams>) =>
     fetch(`${BASE}/api/driver-params`, {
       method: 'PATCH',
